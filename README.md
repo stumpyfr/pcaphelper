@@ -11,17 +11,19 @@ Currently focus on pcap only, pcap-ng is not supported
 ```
 IsPcap(filename string) (bool, error)
 GetVersion(filename string) (major, minor, error)
-GetTimestamp(filename string) (*time.Time, error)
+GetStartTimestamp(filename string) (*time.Time, error)
+GetEndTimestamp(filename string) (*time.Time, error)
 GetMD5(filename string) (string, error)
 GetSHA1(filename string) (string, error)
+GetDataLink(filename string) (string, error)
 ```
 
 you can find the full documentation here: https://godoc.org/github.com/stumpyfr/pcaphelper
 
 # Roadmap
 
-* [ ] GetEncapsulation
-* [ ] GetNumberOfPacket
-* [ ] GetDuration
-* [ ] GetStarttime
-* [ ] GetEndTime
+* [x] GetDataLink
+* [x] GetNumberOfPacket
+* [x] GetDuration
+* [x] GetStartTimestamp
+* [x] GetEndTimestamp

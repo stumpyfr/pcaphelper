@@ -1,8 +1,8 @@
 package pcaphelper
 
 import (
-	"fmt"
 	"testing"
+	"time"
 
 	pcaphelper "."
 )
@@ -43,8 +43,8 @@ func TestGetVersion(t *testing.T) {
 	}
 }
 
-func TestGetTimestamp(t *testing.T) {
-	ts, err := pcaphelper.GetTimestamp(VALID_PCAP)
+func TestGetFirstTimestamp(t *testing.T) {
+	ts, err := pcaphelper.GetFirstTimestamp(VALID_PCAP)
 	if err != nil {
 		t.Error(err)
 	}
@@ -73,6 +73,48 @@ func TestGetSHA1(t *testing.T) {
 	if sha1 != "59ad636d4dc74684454bc2f7df6ec74efa7a0851" {
 		t.Error("invalid md5")
 	}
+}
 
-	fmt.Println(sha1)
+func TestNumberOfPacket(t *testing.T) {
+	nb, err := pcaphelper.NumberOfPacket(VALID_PCAP)
+	if err != nil {
+		t.Error(err)
+	}
+	if nb != 4059 {
+		t.Error("invalid number of packet")
+	}
+}
+
+func TestGetLastTimestamp(t *testing.T) {
+	ts, err := pcaphelper.GetLastTimestamp(VALID_PCAP)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if ts.String() != "2009-03-18 23:05:59 +0400 GST" {
+		t.Error("incorrect timestamp")
+	}
+}
+
+func TestGetDuration(t *testing.T) {
+	d, err := pcaphelper.GetDuration(VALID_PCAP)
+	if err != nil {
+		t.Error(err)
+	}
+
+	excepted, _ := time.ParseDuration("45s")
+	if *d != excepted {
+		t.Error("invalid duration")
+	}
+}
+
+func TestDataLink(t *testing.T) {
+	dt, err := pcaphelper.GetDataLink(VALID_PCAP)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if dt != "LINKTYPE_ETHERNET" {
+		t.Error("invalid data link")
+	}
 }

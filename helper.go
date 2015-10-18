@@ -21,6 +21,29 @@ func IsPcap(filepath string) (bool, error) {
 	return isPcap(data)
 }
 
+// GetDataLink returns the datalink of the pcap
+func GetDataLink(filepath string) (string, error) {
+	data, err := readHeaders(filepath)
+	if err != nil {
+		return "", err
+	}
+
+	isPcap, err := isPcap(data)
+	if err != nil {
+		return "", err
+	} else if isPcap == false {
+		return "", errors.New("invalid pcap")
+	}
+
+	dt := binary.LittleEndian.Uint32(data[20 : 20+4])
+
+	if val, ok := datalinks[dt]; ok {
+		return val, nil
+	}
+
+	return "unknow", nil
+}
+
 // GetVersion return the major and minor version of the pcap file
 func GetVersion(filepath string) (int, int, error) {
 	data, err := readHeaders(filepath)
@@ -40,8 +63,8 @@ func GetVersion(filepath string) (int, int, error) {
 	return (int)(major), (int)(minor), nil
 }
 
-// GetTimestamp returns the timestamp of the first packet
-func GetTimestamp(filepath string) (*time.Time, error) {
+// GetFirstTimestamp returns the timestamp of the first packet
+func GetFirstTimestamp(filepath string) (*time.Time, error) {
 	data, err := readHeaders(filepath)
 	if err != nil {
 		return nil, err
@@ -92,6 +115,97 @@ func GetSHA1(filename string) (string, error) {
 	}
 
 	return hex.EncodeToString(hash.Sum(result)), nil
+}
+
+// NumberOfPacket returns the number of packet in the pcap
+func NumberOfPacket(filename string) (int, error) {
+	counter := 0
+
+	f, err := os.Open(filename)
+	if err != nil {
+		return 0, err
+	}
+	defer f.Close()
+
+	data := make([]byte, 24) //pcap header
+	_, err = f.Read(data)
+	if err != nil {
+		return 0, err
+	}
+	isPcap, err := isPcap(data)
+	if err != nil {
+		return 0, err
+	} else if isPcap == false {
+		return 0, errors.New("invalid pcap")
+	}
+
+	for {
+		// iterate over packet header, seek over packet
+		data = make([]byte, 16)
+		_, err = f.Read(data)
+		if err != nil {
+			if err == io.EOF {
+				return counter, nil
+			}
+			return 0, err
+		}
+		i := binary.LittleEndian.Uint32(data[8 : 8+4]) // access incl_len
+		f.Seek((int64)(i), os.SEEK_CUR)
+		counter++
+	}
+	return 0, nil
+}
+
+// GetLastTimestamp returns the timestamp of the last packet
+func GetLastTimestamp(filename string) (*time.Time, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	data := make([]byte, 24) //pcap header
+	_, err = f.Read(data)
+	if err != nil {
+		return nil, err
+	}
+	isPcap, err := isPcap(data)
+	if err != nil {
+		return nil, err
+	} else if isPcap == false {
+		return nil, errors.New("invalid pcap")
+	}
+
+	var t time.Time
+	for {
+		// iterate over packet header, seek over packet
+		data = make([]byte, 16)
+		_, err = f.Read(data)
+		if err != nil {
+			if err == io.EOF {
+				return &t, nil
+			}
+			return nil, err
+		}
+		i := binary.LittleEndian.Uint32(data[0:4]) // access to ts_sec
+		t = time.Unix((int64)(i), 0)
+		i = binary.LittleEndian.Uint32(data[8 : 8+4]) // access incl_len
+		f.Seek((int64)(i), os.SEEK_CUR)
+	}
+	return nil, nil
+}
+
+func GetDuration(filename string) (*time.Duration, error) {
+	start, err := GetFirstTimestamp(filename)
+	if err != nil {
+		return nil, err
+	}
+	end, err := GetLastTimestamp(filename)
+	if err != nil {
+		return nil, err
+	}
+	delta := end.Sub(*start)
+	return &delta, nil
 }
 
 func isPcap(data []byte) (bool, error) {
