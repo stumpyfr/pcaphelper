@@ -2,7 +2,7 @@
 
 pcaphelper is a small package to get some information about pcap file.
 
-the goals are performance and no dependencies
+the goals are performance and no dependencies (no need of libpcap)
 
 Currently focus on pcap only, pcap-ng is not supported
 
