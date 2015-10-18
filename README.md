@@ -2,7 +2,7 @@
 
 pcaphelper is a small package to get some information about pcap file.
 
-the goals are performance and no dependencies (no need of libpcap)
+the goals are performance(WIP) and no dependencies (no need of libpcap)
 
 Currently focus on pcap only, pcap-ng is not supported
 
@@ -21,9 +21,12 @@ GetDataLink(filename string) (string, error)
 you can find the full documentation here: https://godoc.org/github.com/stumpyfr/pcaphelper
 
 # Roadmap
-
+* [ ] pcap-ng support
 * [x] GetDataLink
 * [x] GetNumberOfPacket
+  * [ ] need improve performance
 * [x] GetDuration
+  * [ ] need improve performance
 * [x] GetStartTimestamp
 * [x] GetEndTimestamp
+  * [ ] need improve performance
