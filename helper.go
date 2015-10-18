@@ -62,6 +62,7 @@ func GetTimestamp(filepath string) (*time.Time, error) {
 	return &t, nil
 }
 
+// GetMD5 returns the md5 hash of the file
 func GetMD5(filename string) (string, error) {
 	var result []byte
 	file, err := os.Open(filename)
@@ -77,6 +78,7 @@ func GetMD5(filename string) (string, error) {
 	return hex.EncodeToString(hash.Sum(result)), nil
 }
 
+// GetSHA1 returns the sha1 hash of the file
 func GetSHA1(filename string) (string, error) {
 	var result []byte
 	file, err := os.Open(filename)
