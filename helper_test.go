@@ -9,12 +9,14 @@ import (
 
 const VALID_PCAP = "test.pcap"
 
+//const VALID_PCAP = "dhcp-nanosecond.pcap"
+
 func TestIsPcap(t *testing.T) {
 	ret, err := pcaphelper.IsPcap(VALID_PCAP)
 	if err != nil {
 		t.Error(err)
 	}
-	if ret == false {
+	if ret == pcaphelper.INVALID {
 		t.Error("test.pcap is a valid pcap")
 	}
 
@@ -24,7 +26,7 @@ func TestIsPcap(t *testing.T) {
 	}
 
 	ret, err = pcaphelper.IsPcap("helper.go")
-	if ret == true && err == nil {
+	if ret != pcaphelper.INVALID && err == nil {
 		t.Error("file is not a valid pcap")
 	}
 }
@@ -50,6 +52,18 @@ func TestGetFirstTimestamp(t *testing.T) {
 	}
 	if ts.String() != "2009-03-18 23:05:14 +0400 GST" {
 		t.Error("incorrect timestamp")
+	}
+}
+
+func TestGetDuration(t *testing.T) {
+	d, err := pcaphelper.GetDuration(VALID_PCAP)
+	if err != nil {
+		t.Error(err)
+	}
+
+	excepted, _ := time.ParseDuration("45s")
+	if *d != excepted {
+		t.Error("invalid duration")
 	}
 }
 
@@ -96,25 +110,13 @@ func TestGetLastTimestamp(t *testing.T) {
 	}
 }
 
-func TestGetDuration(t *testing.T) {
-	d, err := pcaphelper.GetDuration(VALID_PCAP)
-	if err != nil {
-		t.Error(err)
-	}
-
-	excepted, _ := time.ParseDuration("45s")
-	if *d != excepted {
-		t.Error("invalid duration")
-	}
-}
-
 func TestDataLink(t *testing.T) {
 	dt, err := pcaphelper.GetDataLink(VALID_PCAP)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if dt != "LINKTYPE_ETHERNET" {
+	if dt != pcaphelper.LINKTYPE_ETHERNET {
 		t.Error("invalid data link")
 	}
 }
