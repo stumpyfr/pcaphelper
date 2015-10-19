@@ -6,17 +6,16 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"time"
 )
 
 // IsPcap returns the PcapType based on the magic code of the file
-func IsPcap(filepath string) (PcapType, error) {
+func IsPcap(filepath string) (PcapType, Endianness, error) {
 	data, err := readHeaders(filepath)
 	if err != nil {
-		return INVALID, err
+		return INVALID, LITTLE, err
 	}
 
 	return isPcap(data)
@@ -29,21 +28,21 @@ func GetDataLink(filepath string) (DataLink, error) {
 		return LINKTYPE_NULL, err
 	}
 
-	typ, err := isPcap(data)
+	typ, e, err := isPcap(data)
 	if err != nil {
 		return LINKTYPE_NULL, err
 	} else if typ == INVALID || typ == PCAP_NG {
 		return LINKTYPE_NULL, errors.New("invalid pcap")
 	}
 
-	dt := binary.LittleEndian.Uint32(data[20 : 20+4])
-	return (DataLink)(dt), nil
+	var dt uint32
+	if e == LITTLE {
+		dt = binary.LittleEndian.Uint32(data[20 : 20+4])
+	} else {
+		dt = binary.BigEndian.Uint32(data[20 : 20+4])
+	}
 
-	/*
-		if val, ok := datalinks[dt]; ok {
-				return val, nil
-			}
-	*/
+	return (DataLink)(dt), nil
 }
 
 // GetVersion return the major and minor version of the pcap file
@@ -52,17 +51,22 @@ func GetVersion(filepath string) (int, int, error) {
 	if err != nil {
 		return -1, -1, err
 	}
-	typ, err := isPcap(data)
+	typ, e, err := isPcap(data)
 	if err != nil {
 		return -1, -1, err
 	} else if typ == INVALID || typ == PCAP_NG {
 		return -1, -1, errors.New("not a valid pcap")
 	}
 
-	major := binary.LittleEndian.Uint16(data[4 : 4+2])
-	minor := binary.LittleEndian.Uint16(data[6 : 6+2])
-
-	return (int)(major), (int)(minor), nil
+	if e == LITTLE {
+		major := binary.LittleEndian.Uint16(data[4 : 4+2])
+		minor := binary.LittleEndian.Uint16(data[6 : 6+2])
+		return (int)(major), (int)(minor), nil
+	} else {
+		major := binary.BigEndian.Uint16(data[4 : 4+2])
+		minor := binary.BigEndian.Uint16(data[6 : 6+2])
+		return (int)(major), (int)(minor), nil
+	}
 }
 
 // GetFirstTimestamp returns the timestamp of the first packet
@@ -71,7 +75,7 @@ func GetFirstTimestamp(filepath string) (*time.Time, error) {
 	if err != nil {
 		return nil, err
 	}
-	typ, err := isPcap(data)
+	typ, e, err := isPcap(data)
 	if err != nil {
 		return nil, err
 	} else if typ == INVALID || typ == PCAP_NG {
@@ -82,9 +86,15 @@ func GetFirstTimestamp(filepath string) (*time.Time, error) {
 		return nil, errors.New("no packet the in pcap")
 	}
 
-	i := binary.LittleEndian.Uint32(data[24 : 24+4]) // access to ts_sec; in the first packet's heade
-	t := time.Unix((int64)(i), 0)
-	return &t, nil
+	if e == LITTLE {
+		i := binary.LittleEndian.Uint32(data[24 : 24+4]) // access to ts_sec; in the first packet's heade
+		t := time.Unix((int64)(i), 0)
+		return &t, nil
+	} else {
+		i := binary.BigEndian.Uint32(data[24 : 24+4]) // access to ts_sec; in the first packet's heade
+		t := time.Unix((int64)(i), 0)
+		return &t, nil
+	}
 }
 
 // GetMD5 returns the md5 hash of the file
@@ -134,7 +144,7 @@ func NumberOfPacket(filename string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	typ, err := isPcap(data)
+	typ, e, err := isPcap(data)
 	if err != nil {
 		return 0, err
 	} else if typ == INVALID || typ == PCAP_NG {
@@ -151,8 +161,15 @@ func NumberOfPacket(filename string) (int, error) {
 			}
 			return 0, err
 		}
-		i := binary.LittleEndian.Uint32(data[8 : 8+4]) // access incl_len
+
+		var i uint32
+		if e == LITTLE {
+			i = binary.LittleEndian.Uint32(data[8 : 8+4]) // access incl_len
+		} else {
+			i = binary.BigEndian.Uint32(data[8 : 8+4]) // access incl_len
+		}
 		f.Seek((int64)(i), os.SEEK_CUR)
+
 		counter++
 	}
 	return 0, nil
@@ -171,7 +188,7 @@ func GetLastTimestamp(filename string) (*time.Time, error) {
 	if err != nil {
 		return nil, err
 	}
-	typ, err := isPcap(data)
+	typ, e, err := isPcap(data)
 	if err != nil {
 		return nil, err
 	} else if typ == INVALID || typ == PCAP_NG {
@@ -189,9 +206,18 @@ func GetLastTimestamp(filename string) (*time.Time, error) {
 			}
 			return nil, err
 		}
-		i := binary.LittleEndian.Uint32(data[0:4]) // access to ts_sec
-		t = time.Unix((int64)(i), 0)
-		i = binary.LittleEndian.Uint32(data[8 : 8+4]) // access incl_len
+
+		var i uint32
+		if e == LITTLE {
+			i = binary.LittleEndian.Uint32(data[0:4]) // access to ts_sec
+			t = time.Unix((int64)(i), 0)
+			i = binary.LittleEndian.Uint32(data[8 : 8+4]) // access incl_len
+		} else {
+			i = binary.BigEndian.Uint32(data[0:4]) // access to ts_sec
+			t = time.Unix((int64)(i), 0)
+			i = binary.BigEndian.Uint32(data[8 : 8+4]) // access incl_len
+		}
+
 		f.Seek((int64)(i), os.SEEK_CUR)
 	}
 	return nil, nil
@@ -210,20 +236,23 @@ func GetDuration(filename string) (*time.Duration, error) {
 	return &delta, nil
 }
 
-func isPcap(data []byte) (PcapType, error) {
+func isPcap(data []byte) (PcapType, Endianness, error) {
 	if len(data) < 24 {
-		return INVALID, errors.New("invalid pcap header")
+		return INVALID, LITTLE, errors.New("invalid pcap header")
 	}
 	i := binary.LittleEndian.Uint32(data[0:4])
-	fmt.Println(i)
 	if i == PCAP {
-		return PCAP, nil
+		return PCAP, LITTLE, nil
+	} else if i == PCAP_SWAPPED {
+		return PCAP, BIG, nil
 	} else if i == PCAP_NS {
-		return PCAP_NS, nil
+		return PCAP_NS, LITTLE, nil
+	} else if i == PCAP_NS_SWAPPED {
+		return PCAP_NS, BIG, nil
 	} else if i == PCAP_NG {
-		return PCAP_NG, nil
+		return PCAP_NG, LITTLE, nil
 	}
-	return INVALID, nil
+	return INVALID, LITTLE, nil
 }
 
 func readHeaders(filepath string) ([]byte, error) {

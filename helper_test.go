@@ -9,10 +9,12 @@ import (
 
 const VALID_PCAP = "test.pcap"
 
+//const VALID_PCAP = "bigendian.pcap"
+
 //const VALID_PCAP = "dhcp-nanosecond.pcap"
 
 func TestIsPcap(t *testing.T) {
-	ret, err := pcaphelper.IsPcap(VALID_PCAP)
+	ret, _, err := pcaphelper.IsPcap(VALID_PCAP)
 	if err != nil {
 		t.Error(err)
 	}
@@ -20,12 +22,12 @@ func TestIsPcap(t *testing.T) {
 		t.Error("test.pcap is a valid pcap")
 	}
 
-	_, err = pcaphelper.IsPcap("toto")
+	_, _, err = pcaphelper.IsPcap("toto")
 	if err == nil {
 		t.Error("file doesn't exist!")
 	}
 
-	ret, err = pcaphelper.IsPcap("helper.go")
+	ret, _, err = pcaphelper.IsPcap("helper.go")
 	if ret != pcaphelper.INVALID && err == nil {
 		t.Error("file is not a valid pcap")
 	}

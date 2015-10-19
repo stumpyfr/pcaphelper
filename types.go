@@ -6,11 +6,19 @@ type PcapType int
 // DataLink represents the data link of the pcap
 type DataLink int
 
+// Endianness represents the endian type of the pcap
+type Endianness int
+
 const (
-	INVALID PcapType = 0
-	PCAP             = 0xa1b2c3d4
-	PCAP_NS          = 0xa1b23c4d
-	PCAP_NG          = 0x0a0d0d0a
+	LITTLE Endianness = 0
+	BIG               = 1
+
+	INVALID         PcapType = 0
+	PCAP                     = 0xa1b2c3d4
+	PCAP_SWAPPED             = 0xd4c3b2a1
+	PCAP_NS                  = 0xa1b23c4d
+	PCAP_NS_SWAPPED          = 0x4d3cb2a1
+	PCAP_NG                  = 0x0a0d0d0a
 
 	LINKTYPE_NULL                DataLink = 0
 	LINKTYPE_ETHERNET                     = 1
