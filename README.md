@@ -9,7 +9,7 @@ Currently focus on pcap only (pcap nano is supported for the detection), pcap-ng
 # functions
 
 ```
-IsPcap(filename string) (PcapType, error)
+IsPcap(filename string) (PcapType, Endianness, error)
 GetVersion(filename string) (major, minor, error)
 GetStartTimestamp(filename string) (*time.Time, error)
 GetEndTimestamp(filename string) (*time.Time, error)
