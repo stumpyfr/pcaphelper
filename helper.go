@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// IsPcap returns the PcapType based on the magic code of the file
+// IsPcap returns the PcapType based on the magic code of the file and the endianness of the pcap
 func IsPcap(filepath string) (PcapType, Endianness, error) {
 	data, err := readHeaders(filepath)
 	if err != nil {
