@@ -29,10 +29,10 @@ func GetDataLink(filepath string) (DataLink, error) {
 		return LINKTYPE_NULL, err
 	}
 
-	isPcap, err := isPcap(data)
+	typ, err := isPcap(data)
 	if err != nil {
 		return LINKTYPE_NULL, err
-	} else if isPcap == INVALID {
+	} else if typ == INVALID || typ == PCAP_NG {
 		return LINKTYPE_NULL, errors.New("invalid pcap")
 	}
 
@@ -52,10 +52,10 @@ func GetVersion(filepath string) (int, int, error) {
 	if err != nil {
 		return -1, -1, err
 	}
-	isPcap, err := isPcap(data)
+	typ, err := isPcap(data)
 	if err != nil {
 		return -1, -1, err
-	} else if isPcap == INVALID {
+	} else if typ == INVALID || typ == PCAP_NG {
 		return -1, -1, errors.New("not a valid pcap")
 	}
 
@@ -71,10 +71,10 @@ func GetFirstTimestamp(filepath string) (*time.Time, error) {
 	if err != nil {
 		return nil, err
 	}
-	isPcap, err := isPcap(data)
+	typ, err := isPcap(data)
 	if err != nil {
 		return nil, err
-	} else if isPcap == INVALID {
+	} else if typ == INVALID || typ == PCAP_NG {
 		return nil, errors.New("not a valid pcap")
 	}
 
@@ -134,10 +134,10 @@ func NumberOfPacket(filename string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	isPcap, err := isPcap(data)
+	typ, err := isPcap(data)
 	if err != nil {
 		return 0, err
-	} else if isPcap == INVALID {
+	} else if typ == INVALID || typ == PCAP_NG {
 		return 0, errors.New("invalid pcap")
 	}
 
@@ -171,10 +171,10 @@ func GetLastTimestamp(filename string) (*time.Time, error) {
 	if err != nil {
 		return nil, err
 	}
-	isPcap, err := isPcap(data)
+	typ, err := isPcap(data)
 	if err != nil {
 		return nil, err
-	} else if isPcap == INVALID {
+	} else if typ == INVALID || typ == PCAP_NG {
 		return nil, errors.New("invalid pcap")
 	}
 
@@ -218,8 +218,10 @@ func isPcap(data []byte) (PcapType, error) {
 	fmt.Println(i)
 	if i == PCAP {
 		return PCAP, nil
-	} else if PCAP_NS == i {
+	} else if i == PCAP_NS {
 		return PCAP_NS, nil
+	} else if i == PCAP_NG {
+		return PCAP_NG, nil
 	}
 	return INVALID, nil
 }

@@ -10,6 +10,7 @@ const (
 	INVALID PcapType = 0
 	PCAP             = 0xa1b2c3d4
 	PCAP_NS          = 0xa1b23c4d
+	PCAP_NG          = 0x0a0d0d0a
 
 	LINKTYPE_NULL                DataLink = 0
 	LINKTYPE_ETHERNET                     = 1
