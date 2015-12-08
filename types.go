@@ -23,6 +23,7 @@ const (
 	LINKTYPE_NULL                DataLink = 0
 	LINKTYPE_ETHERNET                     = 1
 	LINKTYPE_IEEE802_5                    = 6
+	LINKTYPE_RAW                          = 101
 	LINKTYPE_IEEE802_11                   = 105
 	LINKTYPE_IEEE802_11_RADIOTAP          = 217
 	LINKTYPE_BLUETOOTH_LE_LL              = 251
